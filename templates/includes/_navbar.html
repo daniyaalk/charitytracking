@@ -1,0 +1,7 @@
+<!-- As a heading -->
+<nav class="navbar navbar-light bg-light">
+  <span class="navbar-brand mb-0 h1">Charity Distribution</span>
+  {% if 'admin' in session or 'username' in session%}
+    <a href="/logout"><button class="btn btn-outline-success my-2 my-sm-0" type="submit">Logout</button></a>
+  {% endif %}
+</nav>

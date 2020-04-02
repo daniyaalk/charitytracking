@@ -1,0 +1,29 @@
+{% extends 'layout.html' %}
+
+
+{% block body %}
+
+  <table class="table">
+    <thead>
+      <tr>
+        <th>ID</th>
+        <th>Username</th>
+        <th>Password</th>
+        <th>Service Point</th>
+        <th>Gut Number</th>
+        <th><a href="/add_distributor"><button type="button" class="btn btn-primary" name="button">+Add Distributor</button></a></th>
+      </tr>
+    </thead>
+    {% for distributor in list %}
+      <tr>
+        <th>{{ distributor.id }}</th>
+        <td>{{ distributor.username }}</td>
+        <td>{{ distributor.password }}</td>
+        <td>{{ distributor.service_point }}</td>
+        <td>{{ distributor.gut_number }}</td>
+        <!--<td> <button type="button" class="btn btn-danger" name="button">Delete</button> </td>-->
+      </tr>
+    {% endfor %}
+  </table>
+
+{% endblock %}
