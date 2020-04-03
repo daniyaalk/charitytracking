@@ -1,4 +1,4 @@
-from flask import Flask, request, session, render_template, redirect, url_for, flash
+from flask import Flask, request, session, render_template, redirect, url_for, flash, Response, send_from_directory
 from flask_mysqldb import MySQL
 from wtforms import Form, StringField, PasswordField, validators, IntegerField
 import json
@@ -14,6 +14,11 @@ app.config['MYSQL_DB'] = 'charity'
 app.config['MYSQL_CURSORCLASS'] = 'DictCursor'
 #init MySQL
 mysql = MySQL(app)
+
+#To serve js files
+@app.route('/js/<path:path>')
+def send_js(path):
+    return send_from_directory('js', path)
 
 @app.route('/', methods=['GET', 'POST'])
 def home():
@@ -192,6 +197,9 @@ def add_family():
                 return redirect(url_for('add_family'))
         else:
 
+            if request.method=="POST":
+                flash("Please Fix the errors", 'warning')
+
             return render_template('add_family.html', form=form)
 
 @app.route('/families')
@@ -205,11 +213,14 @@ def families():
 #Family lookup API
 @app.route('/api/family/<uuid>')
 def get_family(uuid):
+    if 'id' not in session:
+        return null
+    else:
 
-    cur = mysql.connection.cursor()
-    cur.execute("SELECT * FROM family WHERE uuid='"+uuid+"'")
+        cur = mysql.connection.cursor()
+        cur.execute("SELECT f.*, d.time FROM families AS f, distribution AS d WHERE f.uuid='"+uuid+"' AND d.family_uuid='"+uuid+"' ORDER BY time desc LIMIT 0,1")
 
-    return json.dumps(cur.fetchone())
+        return Response(json.dumps(cur.fetchone()), mimetype='application/json')
 
 
 app.run(debug=True);
