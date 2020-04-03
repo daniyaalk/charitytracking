@@ -1,7 +1,7 @@
 from flask import Flask, request, session, render_template, redirect, url_for, flash
 from flask_mysqldb import MySQL
 from wtforms import Form, StringField, PasswordField, validators, IntegerField
-from vendor.verhoeff.verhoeff import validate_verhoeff
+import json
 
 app = Flask(__name__)
 app.secret_key = 'JFBSBFWMDSLKHHDKME'
@@ -138,11 +138,6 @@ def distributor():
     return render_template('distributor.html')
 
 class AddFamily(Form):
-
-    def uuid_verify(form, uuid):
-        if not validate_verhoeff(uuid.data):
-            raise ValidationError('Invalid Aadhaar number')
-
     name = StringField('Name', [validators.Length(max=100, min=1),validators.InputRequired()])
 
     plot_number = IntegerField('Plot Number', [validators.InputRequired()])
@@ -151,7 +146,7 @@ class AddFamily(Form):
     layout = StringField('Layout', [validators.Length(max=50, min=1),validators.InputRequired()])
     mouza = StringField('Mouza', [validators.Length(max=50, min=1),validators.InputRequired()])
 
-    mobile_number = IntegerField('Mobile Number', [validators.InputRequired()])
+    mobile_number = IntegerField('Mobile Number', [validators.InputRequired(), validators.NumberRange(min=1000000000, max=9999999999, message="Enter a valid mobile number")])
     uuid = IntegerField('Aadhaar', [validators.InputRequired()])
 
     adults_count = IntegerField('Number of Adults', [validators.InputRequired()])
@@ -189,7 +184,7 @@ def add_family():
                 flash("Family already exists on record", 'warning')
                 return redirect(url_for('add_family'))
             else:
-                cur.execute("INSERT INTO `family` (`id`, `name`, `plot_number`, `gut_number`, `occupation`, `layout`, `mouza`, `mobile_number`, `uuid`, `adults_count`, `children_count`) VALUES (NULL, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)", (name, plot_number, gut_number, occupation, layout, mouza, mobile_number, uuid, adults_count, children_count))
+                cur.execute("INSERT INTO `family` (`name`, `plot_number`, `gut_number`, `occupation`, `layout`, `mouza`, `mobile_number`, `uuid`, `adults_count`, `children_count`) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s)", (name, plot_number, gut_number, occupation, layout, mouza, mobile_number, uuid, adults_count, children_count))
                 mysql.connection.commit()
                 cur.close()
 
@@ -198,15 +193,23 @@ def add_family():
         else:
 
             return render_template('add_family.html', form=form)
-        # if request.method == "GET":
-        #     form = AddFamily(request.form)
-        #     return render_template('add_family.html', form=form)
-        # else:
-        #
-        #
-        #
-        #     else:
 
+@app.route('/families')
+def families():
+    if 'id' not in session:
+        return redirect(url_for('home'))
+    else:
+
+        return render_template('families.html')
+
+#Family lookup API
+@app.route('/api/family/<uuid>')
+def get_family(uuid):
+
+    cur = mysql.connection.cursor()
+    cur.execute("SELECT * FROM family WHERE uuid='"+uuid+"'")
+
+    return json.dumps(cur.fetchone())
 
 
 app.run(debug=True);

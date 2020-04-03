@@ -1,0 +1,33 @@
+{% extends 'layout.html' %}
+
+{% block body %}
+  <h1>Families</h1>
+  <form class="" action="" method="post">
+    <div class="form-group">
+      <label for="aadhaar">Aadhaar Number</label>
+      <input type="number" id="uuid" class="form-control" name="aadhaar">
+    </div>
+    <div class="form-group">
+      <input type="button" class="form-control btn btn-disabled" id="search" value="Enter a valid Aadhaar number" disabled name="Search">
+    </div>
+  </form>
+  <div id="results">
+
+  </div>
+{% endblock %}
+{% block scripts %}
+  <script type="text/javascript" async="false">
+    $("#uuid").change(function(){
+      if($("#uuid").val().length == 12){
+        $("#search").val("Search");
+        $("#search").prop('disabled', false);
+        $("#search").addClass('btn-primary');
+      }
+    });
+    $('#search').click(function(){
+      if (true) {
+        
+      }
+    });
+  </script>
+{% endblock %}
