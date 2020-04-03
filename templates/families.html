@@ -2,15 +2,15 @@
 
 {% block body %}
   <h1>Families</h1>
-  <form id="family-form" class="" action="#">
+  <div id="family-form" class="" action="#">
     <div class="form-group">
       <label for="aadhaar">Aadhaar Number</label>
       <input type="number" id="uuid" class="form-control" name="aadhaar">
     </div>
     <div class="form-group">
-      <input type="button" class="form-control btn btn-disabled" id="search" value="Enter a valid Aadhaar number" disabled name="Search">
+      <input type="button" class="form-control btn btn-disabled" id="search" value="Enter a valid Aadhaar number" disabled="true" name="Search">
     </div>
-  </form>
+  </div>
   <div id="results">
     <div class="spinner-border" id="loading-icon" style="display:none" role="status"><span class="sr-only">Loading...</span></div>
     <div class="card border-primary" id="result-card" style="display: none">
@@ -47,7 +47,7 @@
               <td id="cell-last-distribution"></td>
             </tr>
           </table>
-          <button class="btn btn-primary" name="button">+ Add Distribution</button>
+          <a href="#" id="add-distribution"><button class="btn btn-primary" name="button">+ Add Distribution</button></a>
         </p>
       </div>
     </div>
@@ -132,6 +132,7 @@
             $("#cell-uuid").text(data.uuid);
             $("#cell-last-distribution").text(data.time);
 
+            $("#add-distribution").prop("href", "/add-distribution/"+data.uuid)
           }
         }
       });

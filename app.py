@@ -3,6 +3,7 @@ from flask_mysqldb import MySQL
 from wtforms import Form, StringField, PasswordField, validators, IntegerField
 import json
 from datetime import datetime
+import time
 
 app = Flask(__name__)
 app.secret_key = 'JFBSBFWMDSLKHHDKME'
@@ -141,7 +142,11 @@ def distributor():
 
     if 'id' not in session:
         return redirect(url_for('home'))
-    return render_template('distributor.html')
+
+    cur = mysql.connection.cursor()
+    cur.execute("SELECT COUNT(*) as distr_count FROM distribution WHERE distributor_id='"+str(session['id'])+"'")
+
+    return render_template('distributor.html', id=session['id'], count=cur.fetchone()['distr_count'])
 
 class AddFamily(Form):
     name = StringField('Name', [validators.Length(max=100, min=1),validators.InputRequired()])
@@ -227,7 +232,7 @@ def get_family(uuid):
             time_query=cur.fetchall()
 
             if time_query:
-                data['time'] = datetime.utcfromtimestamp(time_query[0]['time']).strftime('%d-%m-%Y')
+                data['time'] = datetime.utcfromtimestamp(time_query[0]['time']+19800).strftime('%d-%m-%Y')
             else:
                 data['time'] = "Never"
         else:
@@ -235,5 +240,18 @@ def get_family(uuid):
 
         return Response(json.dumps(data), mimetype='application/json')
 
+@app.route('/add-distribution/<uuid>')
+def distribute(uuid):
+    if 'id' not in session:
+        return null
+    else:
+
+        cur = mysql.connection.cursor()
+
+        #INSERT INTO `distribution` (`id`, `distributor_id`, `family_uuid`, `time`) VALUES (NULL, '123', '123', '123');
+        cur.execute("INSERT INTO `distribution` (`id`, `distributor_id`, `family_uuid`, `time`) VALUES (NULL, %s, %s, %s)",(str(session['id']), str(uuid), str(int(time.time()))))
+        mysql.connection.commit()
+        flash("The entry was successfully added!", "success")
+        return redirect(url_for('families'))
 
 app.run(debug=True);
