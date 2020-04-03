@@ -254,4 +254,15 @@ def distribute(uuid):
         flash("The entry was successfully added!", "success")
         return redirect(url_for('families'))
 
+@app.route('/distributions')
+def distributions():
+    if 'admin' not in session:
+        return redirect(url_for('admin'))
+    else:
+        cur = mysql.connection.cursor()
+        cur.execute("SELECT *, DATE_FORMAT(FROM_UNIXTIME(`time`+19800), '%d-%m-%Y') AS 'date_formatted' FROM distribution ORDER BY time DESC")
+        data = cur.fetchall()
+
+        return render_template('distributions.html', data=data)
+
 app.run(debug=True);

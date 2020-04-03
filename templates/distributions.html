@@ -1,0 +1,20 @@
+{% extends 'layout.html' %}
+{% block body %}
+  <h1>Distributions</h1>
+  <table class="table">
+    <tr>
+      <th>ID</th>
+      <th>Distributor ID</th>
+      <th>Aadhaar</th>
+      <th>Time</th>
+    </tr>
+    {% for entry in data %}
+      <tr>
+        <td>{{ entry.id }}</td>
+        <td>{{ entry.distributor_id }}</td>
+        <td>{{ entry.family_uuid }}</td>
+        <td>{{ entry.date_formatted }}</td>
+      </tr>
+    {% endfor%}
+  </table>
+{% endblock %}
