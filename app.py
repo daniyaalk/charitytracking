@@ -2,6 +2,7 @@ from flask import Flask, request, session, render_template, redirect, url_for, f
 from flask_mysqldb import MySQL
 from wtforms import Form, StringField, PasswordField, validators, IntegerField
 import json
+from datetime import datetime
 
 app = Flask(__name__)
 app.secret_key = 'JFBSBFWMDSLKHHDKME'
@@ -218,9 +219,21 @@ def get_family(uuid):
     else:
 
         cur = mysql.connection.cursor()
-        cur.execute("SELECT f.*, d.time FROM families AS f, distribution AS d WHERE f.uuid='"+uuid+"' AND d.family_uuid='"+uuid+"' ORDER BY time desc LIMIT 0,1")
+        cur.execute("SELECT * FROM families WHERE uuid='"+uuid+"'")
+        data = cur.fetchone()
 
-        return Response(json.dumps(cur.fetchone()), mimetype='application/json')
+        if data:
+            cur.execute("SELECT time FROM distribution WHERE family_uuid='"+uuid+"' ORDER BY time DESC")
+            time_query=cur.fetchall()
+
+            if time_query:
+                data['time'] = datetime.utcfromtimestamp(time_query[0]['time']).strftime('%d-%m-%Y')
+            else:
+                data['time'] = "Never"
+        else:
+            data=None
+
+        return Response(json.dumps(data), mimetype='application/json')
 
 
 app.run(debug=True);
