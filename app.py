@@ -1,6 +1,7 @@
 from flask import Flask, request, session, render_template, redirect, url_for, flash
 from flask_mysqldb import MySQL
 from wtforms import Form, StringField, PasswordField, validators, IntegerField
+from vendor.verhoeff.verhoeff import validate_verhoeff
 
 app = Flask(__name__)
 app.secret_key = 'JFBSBFWMDSLKHHDKME'
@@ -14,17 +15,40 @@ app.config['MYSQL_CURSORCLASS'] = 'DictCursor'
 #init MySQL
 mysql = MySQL(app)
 
-@app.route('/')
-def hello_world():
-    return 'Hello, World!'
+@app.route('/', methods=['GET', 'POST'])
+def home():
+
+    if 'id' in session:
+        return redirect(url_for('distributor'))
+    else:
+
+        if request.method == "POST":
+
+            username = request.form['username']
+            password = request.form['password']
+
+            cur = mysql.connection.cursor()
+            cur.execute("SELECT id FROM distributors WHERE username LIKE '"+ username +"' AND password='"+ password +"'")
+
+            check = cur.fetchone()
+
+            if bool(check):
+                session['id'] = check['id']
+                return redirect(url_for('distributor'))
+            else:
+                flash("Incorrect username or password", 'danger')
+                return render_template('home.html')
+
+        else:
+            return render_template('home.html')
 
 @app.route('/logout')
 def logout():
     if 'admin' in session:
         session.pop('admin', None)
 
-    if 'username' in session:
-        session.pop('username', None)
+    if 'id' in session:
+        session.pop('id', None)
 
     return redirect("/")
 
@@ -40,7 +64,8 @@ def admin():
             session['admin'] = True
             return redirect(url_for('admin'))
         else:
-            return "nay"
+            flash("Incorrect username or password", 'danger')
+            return redirect(url_for('admin'))
 
 @app.route('/distributors')
 def distributors():
@@ -104,5 +129,84 @@ def add_distributor():
 
 
     return render_template('add_distributor.html', form=form)
+
+@app.route('/distributor', methods=['GET','POST'])
+def distributor():
+
+    if 'id' not in session:
+        return redirect(url_for('home'))
+    return render_template('distributor.html')
+
+class AddFamily(Form):
+
+    def uuid_verify(form, uuid):
+        if not validate_verhoeff(uuid.data):
+            raise ValidationError('Invalid Aadhaar number')
+
+    name = StringField('Name', [validators.Length(max=100, min=1),validators.InputRequired()])
+
+    plot_number = IntegerField('Plot Number', [validators.InputRequired()])
+    gut_number = IntegerField('Gut Number', [validators.InputRequired()])
+    occupation = StringField('Occupation', [validators.Length(max=50, min=1),validators.InputRequired()])
+    layout = StringField('Layout', [validators.Length(max=50, min=1),validators.InputRequired()])
+    mouza = StringField('Mouza', [validators.Length(max=50, min=1),validators.InputRequired()])
+
+    mobile_number = IntegerField('Mobile Number', [validators.InputRequired()])
+    uuid = IntegerField('Aadhaar', [validators.InputRequired()])
+
+    adults_count = IntegerField('Number of Adults', [validators.InputRequired()])
+    children_count = IntegerField('Number of Children', [validators.InputRequired()])
+
+@app.route('/add_family', methods=['GET', 'POST'])
+def add_family():
+    if 'id' not in session:
+        return redirect(url_for('home'))
+    else:
+
+        form = AddFamily(request.form)
+
+        if request.method=="POST" and form.validate():
+
+            name = request.form['name']
+
+            plot_number = request.form['plot_number']
+            gut_number = request.form['gut_number']
+            occupation = request.form['occupation']
+            layout = request.form['layout']
+            mouza = request.form['mouza']
+
+            mobile_number = request.form['mobile_number']
+            uuid = request.form['uuid']
+
+            adults_count = request.form['adults_count']
+            children_count = request.form['children_count']
+
+            cur = mysql.connection.cursor()
+
+            cur.execute("SELECT COUNT(*) AS family_check FROM family WHERE uuid='"+ uuid +"'")
+
+            if(cur.fetchone()['family_check'])!=0:
+                flash("Family already exists on record", 'warning')
+                return redirect(url_for('add_family'))
+            else:
+                cur.execute("INSERT INTO `family` (`id`, `name`, `plot_number`, `gut_number`, `occupation`, `layout`, `mouza`, `mobile_number`, `uuid`, `adults_count`, `children_count`) VALUES (NULL, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)", (name, plot_number, gut_number, occupation, layout, mouza, mobile_number, uuid, adults_count, children_count))
+                mysql.connection.commit()
+                cur.close()
+
+                flash("Successfully added", 'success')
+                return redirect(url_for('add_family'))
+        else:
+
+            return render_template('add_family.html', form=form)
+        # if request.method == "GET":
+        #     form = AddFamily(request.form)
+        #     return render_template('add_family.html', form=form)
+        # else:
+        #
+        #
+        #
+        #     else:
+
+
 
 app.run(debug=True);
