@@ -178,13 +178,13 @@ def add_family():
 
             cur = mysql.connection.cursor()
 
-            cur.execute("SELECT COUNT(*) AS family_check FROM family WHERE uuid='"+ uuid +"'")
+            cur.execute("SELECT COUNT(*) AS family_check FROM families WHERE uuid='"+ uuid +"'")
 
             if(cur.fetchone()['family_check'])!=0:
                 flash("Family already exists on record", 'warning')
                 return redirect(url_for('add_family'))
             else:
-                cur.execute("INSERT INTO `family` (`name`, `plot_number`, `gut_number`, `occupation`, `layout`, `mouza`, `mobile_number`, `uuid`, `adults_count`, `children_count`) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s)", (name, plot_number, gut_number, occupation, layout, mouza, mobile_number, uuid, adults_count, children_count))
+                cur.execute("INSERT INTO `families` (`name`, `plot_number`, `gut_number`, `occupation`, `layout`, `mouza`, `mobile_number`, `uuid`, `adults_count`, `children_count`) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s)", (name, plot_number, gut_number, occupation, layout, mouza, mobile_number, uuid, adults_count, children_count))
                 mysql.connection.commit()
                 cur.close()
 
