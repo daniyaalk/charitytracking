@@ -1,3 +1,4 @@
+#!/usr/bin/env python3
 from flask import Flask, request, session, render_template, redirect, url_for, flash, Response, send_from_directory
 from flask_mysqldb import MySQL
 from wtforms import Form, StringField, PasswordField, validators, IntegerField
@@ -265,4 +266,4 @@ def distributions():
 
         return render_template('distributions.html', data=data)
 
-app.run(debug=True);
+app.run(debug=True, host='0.0.0.0');
