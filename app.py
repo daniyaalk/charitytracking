@@ -64,7 +64,10 @@ def logout():
 def admin():
     if request.method == 'GET':
         if 'admin' in session:
-            return render_template('admin.html')
+            cur = mysql.connection.cursor()
+            cur.execute("SELECT COUNT(*) AS distribution_count FROM distribution")
+            count = cur.fetchone()['distribution_count']
+            return render_template('admin.html', count=count)
         else:
             return render_template('admin_login.html')
     else:
