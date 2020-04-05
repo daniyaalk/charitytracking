@@ -39,7 +39,7 @@ def home():
             cur.execute("SELECT id FROM distributors WHERE username LIKE '"+ username +"' AND password='"+ password +"'")
 
             check = cur.fetchone()
-
+            cur.close()
             if bool(check):
                 session['id'] = check['id']
                 return redirect(url_for('distributor'))
@@ -67,6 +67,7 @@ def admin():
             cur = mysql.connection.cursor()
             cur.execute("SELECT COUNT(*) AS distribution_count FROM distribution")
             count = cur.fetchone()['distribution_count']
+            cur.close()
             return render_template('admin.html', count=count)
         else:
             return render_template('admin_login.html')
@@ -89,7 +90,7 @@ def distributors():
         cur.execute("SELECT * FROM distributors")
         dist_list = cur.fetchall()
         #print(dist_list)
-
+        cur.close()
         return render_template('distributors.html', list=dist_list)
 
 
@@ -134,7 +135,7 @@ def add_distributor():
             return redirect(url_for('distributors'))
 
         else:
-
+            cur.close()
             flash("That user already exists", 'warning')
             return redirect(url_for('distributors'))
 
@@ -149,8 +150,10 @@ def distributor():
 
     cur = mysql.connection.cursor()
     cur.execute("SELECT COUNT(*) as distr_count FROM distribution WHERE distributor_id='"+str(session['id'])+"'")
+    count = cur.fetchone()['distr_count']
+    cur.close()
 
-    return render_template('distributor.html', id=session['id'], count=cur.fetchone()['distr_count'])
+    return render_template('distributor.html', id=session['id'], count=count)
 
 class AddFamily(Form):
     name = StringField('Name', [validators.Length(max=100, min=1),validators.InputRequired()])
@@ -196,6 +199,7 @@ def add_family():
             cur.execute("SELECT COUNT(*) AS family_check FROM families WHERE uuid='"+ uuid +"'")
 
             if(cur.fetchone()['family_check'])!=0:
+                cur.close()
                 flash("Family already exists on record", 'warning')
                 return redirect(url_for('add_family'))
             else:
@@ -242,6 +246,7 @@ def get_family(uuid):
         else:
             data=None
 
+        cur.close()
         return Response(json.dumps(data), mimetype='application/json')
 
 @app.route('/add-distribution/<uuid>')
@@ -255,6 +260,7 @@ def distribute(uuid):
         #INSERT INTO `distribution` (`id`, `distributor_id`, `family_uuid`, `time`) VALUES (NULL, '123', '123', '123');
         cur.execute("INSERT INTO `distribution` (`id`, `distributor_id`, `family_uuid`, `time`) VALUES (NULL, %s, %s, %s)",(str(session['id']), str(uuid), str(int(time.time()))))
         mysql.connection.commit()
+        cur.close()
         flash("The entry was successfully added!", "success")
         return redirect(url_for('families'))
 
@@ -266,7 +272,7 @@ def distributions():
         cur = mysql.connection.cursor()
         cur.execute("SELECT *, DATE_FORMAT(FROM_UNIXTIME(`time`+19800), '%d-%m-%Y') AS 'date_formatted' FROM distribution ORDER BY time DESC")
         data = cur.fetchall()
-
+        cur.close()
         return render_template('distributions.html', data=data)
 
 if __name__ == "__main__":
